@@ -24,6 +24,8 @@ def load_config(filename='settings.yaml'):
     return cfg
 
 
+
+
 def find_device_id(dev_str):
     '''
     find audio device id by looking for a substring in the device name
@@ -39,21 +41,6 @@ def find_device_id(dev_str):
             return dev_ind
 
     return None
-
-
-def generate_sine(freq, sgn_len, sr):
-    '''
-    generate a sine wave for a given frequency, length, and sampling rate
-
-    :param freq: frequency (Hz)
-    :param sgn_len: length (seconds)
-    :param sr: sampling rate (Hz)
-    :return: numpy vector
-    '''
-
-    ns = int(sgn_len * sr)
-    t = np.arange(ns)
-    return np.sin(2 * np.pi * freq * t / sr)
 
 
 def crop_signal(x, drop_begin, drop_end, sr):
@@ -73,13 +60,32 @@ def crop_signal(x, drop_begin, drop_end, sr):
     return x[start_ind:end_ind]
 
 
-def plot_frequency_response(fr, amp, fn='fr.png'):
-    fig = plt.figure(figsize=(14,4))
+def plot_frequency_response(fr, amp, fn):
+    fig = plt.figure(figsize=(14, 4))
     plt.semilogx(fr, 20 * np.log10(amp))
     plt.xlabel('frequency')
     plt.ylabel('amplitude')
     plt.grid(True)
+
+    bottom, top = plt.ylim()
+    if top < 0:
+        plt.ylim(top=0.0)
+
     plt.savefig(fn)
+
+
+def plot_fft(fr, sgn_fft, fn):
+    fig = plt.figure(figsize=(14, 4))
+    plt.semilogx(fr, np.abs(sgn_fft))
+    plt.xlabel('frequency')
+    plt.ylabel('amplitude')
+    plt.grid(True)
+
+    plt.ylim(bottom=0.0)
+
+    plt.savefig(fn)
+
+
 
 def write_csv(csv_fn, freqs, ampls, use_db=True):
     '''
@@ -94,13 +100,21 @@ def write_csv(csv_fn, freqs, ampls, use_db=True):
 
     with open(csv_fn, 'wt') as f:
         csv_writer = csv.writer(f)
-        hdr = ['f', 'a']
+
+        if use_db:
+            hdr = ['f', 'a(db)']
+        else:
+            hdr = ['f', 'a']
 
         csv_writer.writerow(hdr)
 
-        for row in zip(freqs, ampls):
+        for k, f in enumerate(freqs):
+            row = [f]
+
             if use_db:
-                row[1] = 20 * np.log10(row[1])
+                row.append(20 * np.log10(ampls[k]))
+            else:
+                row.append(ampls)
 
             csv_writer.writerow(row)
 

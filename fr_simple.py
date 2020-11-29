@@ -10,9 +10,23 @@ import sounddevice as sd
 
 from tqdm import tqdm
 
-from common import load_config, find_device_id, generate_sine, crop_signal, generate_frequency_range
+from common import load_config, find_device_id, crop_signal, generate_frequency_range
 from common import plot_frequency_response, write_csv
 
+
+def generate_sine(freq, sgn_len, sr):
+    '''
+    generate a sine wave for a given frequency, length, and sampling rate
+
+    :param freq: frequency (Hz)
+    :param sgn_len: length (seconds)
+    :param sr: sampling rate (Hz)
+    :return: numpy vector
+    '''
+
+    ns = int(sgn_len * sr)
+    t = np.arange(ns)
+    return np.sin(2 * np.pi * freq * t / sr)
 
 
 def test_frequency(freq, sr, config):
@@ -34,7 +48,7 @@ def test_frequency(freq, sr, config):
     test_signal = generate_sine(freq, sgn_len, sr)
 
     # play/rec
-    rec_signal = sd.playrec(test_signal, channels=1)
+    rec_signal = sd.playrec(test_signal, samplerate=sr, channels=1)
 
     # block execution
     sd.wait()
@@ -47,6 +61,26 @@ def test_frequency(freq, sr, config):
     rms = np.mean(np.square(rec_signal))
 
     return ampl, rms
+
+
+def normalizing_factor(config, sr):
+    '''
+    get normalizing settings. get a reference measurement if needed.
+
+    :param config:
+    :return:
+    '''
+
+    ref_ampl = 1
+    if 'normalize' in config:
+        if 'frequency' in config['normalize']:
+            print('testing freq', config['normalize']['frequency'])
+            ref_ampl, _ = test_frequency(config['normalize']['frequency'], sr, config)
+
+        elif 'factor' in config['normalize']:
+            ref_ampl = config['normalize']['factor']
+
+    return ref_ampl
 
 
 def main():
@@ -65,9 +99,9 @@ def main():
         sr = sd.default.samplerate
 
     # get reference amplitude for normalization
-    ref_ampl, _ = test_frequency(1000, sr, cfg)
+    nf = normalizing_factor(cfg, sr)
 
-    print('normalizing factor {}'.format(ref_ampl))
+    print('using normalizing factor {}'.format(nf))
 
     f0 = cfg.get('f0', 10)
     f1 = cfg.get('f1', 20000)
@@ -80,9 +114,9 @@ def main():
         amplitude, rms = test_frequency(f, sr, cfg)
         ampls.append(amplitude)
 
-    ampls = np.array(ampls) / ref_ampl
+    ampls = np.array(ampls) / nf
 
-    plot_frequency_response(freqs, ampls)
+    plot_frequency_response(freqs, ampls, 'fr.png')
 
     if 'csv_fn' in cfg:
         write_csv(cfg['csv_fn'], freqs, ampls)
