@@ -29,14 +29,16 @@ Under `sweep` the following settings are available:
 - pid: points in decade 
 - normalize: settings for incoming signal normalization. under this two alternatives can be given. by specifying 
 `factor` a fixed division is done for every recorded signal. if frequency is set, a test signal is measured with the 
-frequency, it is normalized to 1, and all the other measured frequencies are normalized with the same factor.   
+frequency, it is normalized to 1, and all the other measured frequencies are normalized with the same factor.
+- plot_filename: save the figure of the frequency response   
 - csv_filename: write the results in a csv file 
 
 #### FFT settings
 Under `fft` the following settings are available:
 - fft_len: FFT length (default 4096)
 - freq: frequency of the test signal
-- csv_filename: write the results in a csv file
+- plot_filename: save the figure of the fft 
+- csv_filename: write the result numbers in a csv file
 
 #### Example configuration
 ```
@@ -61,6 +63,7 @@ sweep:
 fft:
   fft_len: 65536
   freq: 1000
+
 
   csv_filename: fft.csv
 ```

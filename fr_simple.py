@@ -118,7 +118,8 @@ def main():
 
     ampls = np.array(ampls) / nf
 
-    plot_frequency_response(freqs, ampls, 'fr.png')
+    if 'plot_filename' in sweep_cfg:
+        plot_frequency_response(freqs, ampls, sweep_cfg['plot_filename'])
 
     if 'csv_filename' in sweep_cfg:
         write_csv(sweep_cfg['csv_filename'], freqs, ampls)

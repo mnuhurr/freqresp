@@ -161,7 +161,8 @@ def main():
 
 
     # save results
-    plot_frequency_response(fr, am, 'fft.png')
+    if 'plot_filename' in fft_cfg:
+        plot_frequency_response(fr, am, fft_cfg['plot_filename'])
 
     if 'csv_filename' in fft_cfg:
         write_csv(fft_cfg['csv_filename'], fr, am)
