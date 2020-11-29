@@ -61,10 +61,18 @@ def crop_signal(x, drop_begin, drop_end, sr):
 
 
 def plot_frequency_response(fr, amp, fn):
-    fig = plt.figure(figsize=(14, 4))
+    '''
+    frequency-amplitude plot.
+
+    :param fr: vector containing frequencies
+    :param amp: vector containing amplitudes
+    :param fn: plot filename
+    :return: None
+    '''
+    fig = plt.figure(figsize=(15, 5))
     plt.semilogx(fr, 20 * np.log10(amp))
-    plt.xlabel('frequency')
-    plt.ylabel('amplitude')
+    plt.xlabel('frequency / Hz')
+    plt.ylabel('amplitude / dB')
     plt.grid(True)
 
     bottom, top = plt.ylim()
@@ -72,19 +80,6 @@ def plot_frequency_response(fr, amp, fn):
         plt.ylim(top=0.0)
 
     plt.savefig(fn)
-
-
-def plot_fft(fr, sgn_fft, fn):
-    fig = plt.figure(figsize=(14, 4))
-    plt.semilogx(fr, np.abs(sgn_fft))
-    plt.xlabel('frequency')
-    plt.ylabel('amplitude')
-    plt.grid(True)
-
-    plt.ylim(bottom=0.0)
-
-    plt.savefig(fn)
-
 
 
 def write_csv(csv_fn, freqs, ampls, use_db=True):

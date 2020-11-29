@@ -72,13 +72,14 @@ def normalizing_factor(config, sr):
     '''
 
     ref_ampl = 1
-    if 'normalize' in config:
-        if 'frequency' in config['normalize']:
-            print('testing freq', config['normalize']['frequency'])
-            ref_ampl, _ = test_frequency(config['normalize']['frequency'], sr, config)
+    if 'sweep' in config and 'normalize' in config['sweep']:
+        if 'frequency' in config['sweep']['normalize']:
+            f_norm = config['sweep']['normalize']['frequency']
+            print('testing freq', f_norm)
+            ref_ampl, _ = test_frequency(f_norm, sr, config)
 
-        elif 'factor' in config['normalize']:
-            ref_ampl = config['normalize']['factor']
+        elif 'factor' in config['sweep']['normalize']:
+            ref_ampl = config['sweep']['normalize']['factor']
 
     return ref_ampl
 
@@ -103,9 +104,10 @@ def main():
 
     print('using normalizing factor {}'.format(nf))
 
-    f0 = cfg.get('f0', 10)
-    f1 = cfg.get('f1', 20000)
-    pid = cfg.get('points_in_decade', 5)
+    sweep_cfg = cfg.get('sweep', {})
+    f0 = sweep_cfg.get('f0', 10)
+    f1 = sweep_cfg.get('f1', 10000)
+    pid = sweep_cfg.get('points_in_decade', 5)
 
     freqs = generate_frequency_range(f0, f1, pid)
     ampls = []
@@ -118,8 +120,8 @@ def main():
 
     plot_frequency_response(freqs, ampls, 'fr.png')
 
-    if 'csv_fn' in cfg:
-        write_csv(cfg['csv_fn'], freqs, ampls)
+    if 'csv_filename' in sweep_cfg:
+        write_csv(sweep_cfg['csv_filename'], freqs, ampls)
 
 if __name__ == '__main__':
     main()

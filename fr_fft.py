@@ -8,7 +8,7 @@ from tqdm import tqdm
 from scipy.signal import get_window
 
 from common import load_config, find_device_id, crop_signal, generate_frequency_range
-from common import plot_frequency_response, plot_fft, write_csv
+from common import plot_frequency_response, write_csv
 
 import matplotlib.pyplot as plt
 
@@ -35,13 +35,29 @@ def generate_sine(freq, n_samples, sr):
 
 
 def fft_freqs(fft_len, sr):
+    '''
+    generate frequency bins for given fft length and sample rate
+
+    :param fft_len: fft length
+    :param sr: sample rate
+    :return: vector of length fft_len containing the corresponding frequencies
+    '''
+
     timestep = 1/sr
     freqs = np.fft.fftfreq(fft_len, d=timestep)
 
-    return freqs
+    n = fft_len // 2
+
+    return freqs[:n]
 
 def get_fft(sgn, sr):
+    '''
+    compute fft of a given signal. currently uses hamming window.
 
+    :param sgn: signal
+    :param sr:  sample rate
+    :return:
+    '''
     # windowing
     sgn_len = len(sgn)
     window = get_window('hamming', sgn_len)
@@ -53,15 +69,22 @@ def get_fft(sgn, sr):
     # fft
     sgn_fft = np.fft.fft(sgn_win) / sgn_len
 
-    # frequency bins
-    freqs = fft_freqs(sgn_len, sr)
-
     n = sgn_len // 2
 
-    return freqs[:n], sgn_fft[:n]
+    return sgn_fft[:n]
 
 
 def test_fft(freq, sr, fft_len=4096):
+    '''
+    generate a test signal of single sine wave, record the output and compute fft of the recorded signal. returns two
+    vectors: first one contains frequencies, the second amplitudes
+
+    :param freq: test frequency
+    :param sr: sample rate
+    :param fft_len: fft length
+    :return: frequency, amplitude
+    '''
+
     n_burnin = sr // 2
     sgn_len = sr // 2
 
@@ -74,17 +97,25 @@ def test_fft(freq, sr, fft_len=4096):
 
     # crop
     rec = rec[n_burnin:n_burnin + fft_len]
-    plot_sgn(sgn, 'sgn_crop.png')
 
     # do the fft
-    fr, am = get_fft(rec, sr)
-    am = np.abs(am).reshape((len(am),))
-    plot_fft(fr, am, 'rec_fft.png')
+    fr = fft_freqs(len(rec), sr)
+    am = get_fft(rec, sr)
+    am = np.abs(am)
 
     return fr, am
 
 
 def thd(am, f_ind):
+    '''
+    compute THD from the FFT results. assumes that the system input signal frequency is exactly one of the FFT bin
+    frequencies.
+
+    :param am: amplitudes
+    :param f_ind: input signal index
+    :return: THD percentage
+    '''
+
     inds = np.arange(f_ind, len(am), f_ind)
     vn = am[inds]
 
@@ -96,8 +127,6 @@ def thd(am, f_ind):
     # bartlett: 0.8660
 
     return np.sqrt(np.sum(np.square(vn[1:]))) / vn[0]
-
-
 
 
 def main():
@@ -115,8 +144,11 @@ def main():
     else:
         sr = sd.default.samplerate
 
-    fft_len = 2**12
-    f = 1000
+    # read some settings
+    fft_cfg = cfg.get('fft', {})
+
+    fft_len = fft_cfg.get('fft_len', 2**12)
+    f = fft_cfg.get('freq', 1000)
 
     # get fft frequencies for the used parameters
     freqs = fft_freqs(fft_len, sr)
@@ -124,14 +156,18 @@ def main():
     # select the nearest one
     f_ind = np.argmin(np.abs(freqs - f))
 
-    fr, am = test_fft(freqs[f_ind], sr)
+    # run the test
+    fr, am = test_fft(freqs[f_ind], sr, fft_len=fft_len)
 
 
-    #plot_fft(fr, am, 'fft.png')
+    # save results
     plot_frequency_response(fr, am, 'fft.png')
-    write_csv('fft.csv', fr, am)
 
-    # thd
+    if 'csv_filename' in fft_cfg:
+        write_csv(fft_cfg['csv_filename'], fr, am)
+
+
+    # compute thd
     thd_pct = thd(am, f_ind)
     thd_db = 20 * np.log10(thd_pct)
     print('thd: {:.2f} dB'.format(thd_db))
