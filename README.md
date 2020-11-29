@@ -3,8 +3,13 @@ Tool to get some insight about the frequency response of a device. Work in
 progress!
 
 todo:
-- input filtering for the frequency response?
+- input filtering for the frequency response? (or otherwise more sophisticated way to measure)
+- one frequency sweep 
 - ...
+
+Currently the frequency sweep is done in a such dummy way that the record/play is launched separately for every 
+measured frequency. This causes overhead since a small part in the beginning of the recording is discarded to ensure 
+stable conditions. 
 
 ### Configuration
 All settings are placed in the file `settings.yaml`. The following settings can be tuned:
