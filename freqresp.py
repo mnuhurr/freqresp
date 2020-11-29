@@ -79,7 +79,7 @@ def test_frequency(freq, sr, config):
     rec_signal = crop_signal(rec_signal, drop_begin, drop_end, sr)
 
     # return values
-    ampl = np.max(rec_signal)
+    ampl = np.max(np.abs(rec_signal))
     rms = np.mean(np.square(rec_signal))
 
     return ampl, rms
@@ -143,6 +143,8 @@ def main():
 
     # get reference amplitude for normalization
     ref_ampl, _ = test_frequency(1000, sr, cfg)
+
+    print('normalizing factor {}'.format(ref_ampl))
 
     f0 = cfg.get('f0', 10)
     f1 = cfg.get('f1', 20000)
