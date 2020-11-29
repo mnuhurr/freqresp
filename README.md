@@ -64,6 +64,6 @@ fft:
   fft_len: 65536
   freq: 1000
 
-
+  plot_filename: fft.png
   csv_filename: fft.csv
 ```
