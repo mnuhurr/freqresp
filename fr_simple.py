@@ -1,3 +1,9 @@
+'''
+
+simple tool to measure frequency response. generates several sinewaves and measures the maximum amplitude of the
+response. more sophisticated methods to come.
+
+'''
 
 import numpy as np
 import sounddevice as sd
