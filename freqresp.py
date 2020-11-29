@@ -3,6 +3,7 @@ import numpy as np
 import sounddevice as sd
 
 import matplotlib.pyplot as plt
+import csv
 
 from tqdm import tqdm
 
@@ -86,14 +87,21 @@ def test_frequency(freq, sr, config):
 
 
 def generate_frequency_range(f0, f1, points_in_decade):
+    '''
+    generate logarithmic range of points. endpoints are included
+
+    :param f0: start frequency
+    :param f1: end frequency
+    :param points_in_decade: number of points in a decade
+    :return: numpy vector
+    '''
+
+    if f0 > f1:
+        return None
 
     n_decades = np.log10(f1 / f0)
-    print('n_decades:', n_decades)
-
     n_points = n_decades * points_in_decade
-
     b = np.log10(f0)
-
     k = n_decades * np.arange(n_points + 1) / n_points + b
 
     return 10**k
@@ -106,6 +114,17 @@ def plot_frequency_response(fr, amp, fn='fr.png'):
     plt.ylabel('amplitude')
     plt.grid(True)
     plt.savefig(fn)
+
+def write_csv(csv_fn, freqs, ampls):
+    with open(csv_fn, 'wt') as f:
+        csv_writer = csv.writer(f)
+        hdr = ['f', 'a']
+
+        csv_writer.writerow(hdr)
+
+        for row in zip(freqs, ampls):
+            csv_writer.writerow(row)
+
 
 def main():
     cfg = load_config()
@@ -122,11 +141,14 @@ def main():
     else:
         sr = sd.default.samplerate
 
+    # get reference amplitude for normalization
     ref_ampl, _ = test_frequency(1000, sr, cfg)
 
-    #print(ampl, rms)
+    f0 = cfg.get('f0', 10)
+    f1 = cfg.get('f1', 20000)
+    pid = cfg.get('points_in_decade', 5)
 
-    freqs = generate_frequency_range(10, 96000, 4)
+    freqs = generate_frequency_range(f0, f1, pid)
     ampls = []
 
     for f in tqdm(freqs):
@@ -136,6 +158,9 @@ def main():
     ampls = np.array(ampls) / ref_ampl
 
     plot_frequency_response(freqs, ampls)
+
+    if 'csv_fn' in cfg:
+        write_csv(cfg['csv_fn'], freqs, ampls)
 
 if __name__ == '__main__':
     main()

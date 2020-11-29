@@ -8,3 +8,6 @@ All settings are placed in the file `settings.yaml`. The following settings can 
 - device: device to use (device name string)
 - n_waves: number of full waves to generate for each measurement point
 
+- f0: beginning of the frequency sweep
+- f1: end of the frequency sweep
+- pid: points in decade 
