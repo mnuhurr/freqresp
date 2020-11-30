@@ -103,6 +103,8 @@ def main():
     else:
         sr = sd.default.samplerate
 
+    repeats = 10
+
     # get reference amplitude for normalization
     nf = normalizing_factor(cfg, sr)
 
@@ -115,13 +117,21 @@ def main():
     pid = sweep_cfg.get('points_in_decade', 5)
 
     freqs = generate_frequency_range(f0, f1, pid)
-    ampls = []
+    ams = []
 
-    for f in tqdm(freqs):
-        amplitude, rms = test_frequency(f, sr, cfg)
-        ampls.append(amplitude)
+    for r in range(repeats):
+        ampls = []
+        print('round {}/{}'.format(r + 1, repeats))
 
-    ampls = np.array(ampls) / nf
+        for f in tqdm(freqs):
+            amplitude, rms = test_frequency(f, sr, cfg)
+            ampls.append(amplitude)
+
+        ampls = np.array(ampls) / nf
+
+        ams.append(ampls)
+
+    ampls = np.mean(np.array(ams), axis=0)
 
     if 'plot_filename' in sweep_cfg:
         plot_frequency_response(freqs, ampls, sweep_cfg['plot_filename'])
