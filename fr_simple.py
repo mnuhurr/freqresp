@@ -13,6 +13,7 @@ from tqdm import tqdm
 from common import load_config, find_device_id, crop_signal, generate_frequency_range
 from common import plot_frequency_response, write_csv
 
+from filtering import bandpass, lowpass
 
 def generate_sine(freq, sgn_len, sr):
     '''
@@ -55,6 +56,9 @@ def test_frequency(freq, sr, config):
 
     # do the cropping
     rec_signal = crop_signal(rec_signal, drop_begin, drop_end, sr)
+
+    # filtering. do some normalization due to that
+    #rec_signal = bandpass(rec_signal, freq, sr)
 
     # return values
     ampl = np.max(np.abs(rec_signal))
@@ -102,6 +106,7 @@ def main():
     # get reference amplitude for normalization
     nf = normalizing_factor(cfg, sr)
 
+    # debug prints
     print('using normalizing factor {}'.format(nf))
 
     sweep_cfg = cfg.get('sweep', {})

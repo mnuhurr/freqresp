@@ -75,9 +75,14 @@ def plot_frequency_response(fr, amp, fn):
     plt.ylabel('amplitude / dB')
     plt.grid(True)
 
+    # limits
     bottom, top = plt.ylim()
     if top < 0:
         plt.ylim(top=0.0)
+
+    max_freq = np.max(fr)
+    xl = 10**np.ceil(np.log10(max_freq))
+    plt.xlim(right=xl)
 
     plt.savefig(fn)
 
@@ -131,7 +136,7 @@ def generate_frequency_range(f0, f1, points_in_decade):
     n_decades = np.log10(f1 / f0)
     n_points = n_decades * points_in_decade
     b = np.log10(f0)
-    k = n_decades * np.arange(n_points + 1) / n_points + b
+    k = n_decades * np.arange(n_points) / n_points + b
 
     return 10**k
 
