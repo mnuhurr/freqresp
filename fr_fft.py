@@ -63,11 +63,8 @@ def get_fft(sgn, sr):
     window = get_window('hamming', sgn_len)
     sgn_win = sgn * window
 
-    # normalize
-    #sgn_win /= np.max(np.abs(sgn_win))
-
     # fft
-    sgn_fft = np.fft.fft(sgn_win) / sgn_len
+    sgn_fft = np.fft.fft(sgn_win)
 
     n = sgn_len // 2
 
@@ -144,6 +141,8 @@ def main():
     else:
         sr = sd.default.samplerate
 
+    repeats = 10
+
     # read some settings
     fft_cfg = cfg.get('fft', {})
 
@@ -156,9 +155,20 @@ def main():
     # select the nearest one
     f_ind = np.argmin(np.abs(freqs - f))
 
-    # run the test
-    fr, am = test_fft(freqs[f_ind], sr, fft_len=fft_len)
+    ams = []
 
+    for r in range(repeats):
+        print('round {}/{}'.format(r + 1, repeats))
+
+        # run the test
+        fr, am = test_fft(freqs[f_ind], sr, fft_len=fft_len)
+
+        # normalize
+        #am /= am[f_ind]
+
+        ams.append(am)
+
+    am = np.mean(np.array(ams), axis=0)
 
     # save results
     if 'plot_filename' in fft_cfg:
