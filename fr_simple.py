@@ -103,8 +103,6 @@ def main():
     else:
         sr = sd.default.samplerate
 
-    repeats = 10
-
     # get reference amplitude for normalization
     nf = normalizing_factor(cfg, sr)
 
@@ -115,6 +113,7 @@ def main():
     f0 = sweep_cfg.get('f0', 10)
     f1 = sweep_cfg.get('f1', 10000)
     pid = sweep_cfg.get('points_in_decade', 5)
+    repeats = sweep_cfg.get('repeats', 1)
 
     freqs = generate_frequency_range(f0, f1, pid)
     ams = []

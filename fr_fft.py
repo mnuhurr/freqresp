@@ -141,13 +141,12 @@ def main():
     else:
         sr = sd.default.samplerate
 
-    repeats = 10
-
     # read some settings
     fft_cfg = cfg.get('fft', {})
 
     fft_len = fft_cfg.get('fft_len', 2**12)
     f = fft_cfg.get('freq', 1000)
+    repeats = fft_cfg.get('repeats', 1)
 
     # get fft frequencies for the used parameters
     freqs = fft_freqs(fft_len, sr)
